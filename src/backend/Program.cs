@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5000")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -33,12 +33,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Inicialização incremental do schema (idempotente)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    // Cria a tabela de histórico se não existir
     db.Database.ExecuteSqlRaw(@"
         CREATE TABLE IF NOT EXISTS public.veiculo_historico (
             id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -52,8 +50,7 @@ using (var scope = app.Services.CreateScope())
         )
     ");
 
-    // Popula o histórico para veículos que ainda não possuem registro aberto.
-    // Usa DATE_TRUNC para normalizar o DataInicio ao início do dia (semântica de data exclusiva).
+    
     db.Database.ExecuteSqlRaw(@"
         INSERT INTO public.veiculo_historico (id, veiculo_id, cliente_id, data_inicio, data_fim)
         SELECT uuid_generate_v4(),
