@@ -18,9 +18,12 @@ namespace Parking.Api.Controllers
         public async Task<IActionResult> List([FromQuery] int pagina = 1, [FromQuery] int tamanho = 10, [FromQuery] string? filtro = null, [FromQuery] string mensalista = "all")
         {
             var q = _db.Clientes.AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(filtro))
                 q = q.Where(c => c.Nome.Contains(filtro));
+
             if (mensalista == "true") q = q.Where(c => c.Mensalista);
+
             if (mensalista == "false") q = q.Where(c => !c.Mensalista);
 
             var total = await q.CountAsync();
@@ -29,7 +32,8 @@ namespace Parking.Api.Controllers
                 .Skip((pagina - 1) * tamanho)
                 .Take(tamanho)
                 .ToListAsync();
-            return Ok(new { total, itens });
+
+            return itens is null ? NotFound("Nenhum cliente encontrado.") : Ok(new { total, itens });
         }
 
         [HttpPost]
@@ -38,7 +42,13 @@ namespace Parking.Api.Controllers
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 return BadRequest("Nome é obrigatório.");
 
-            var existe = await _db.Clientes.AnyAsync(c => c.Nome == dto.Nome && c.Telefone == dto.Telefone);
+            var nomeFormatado = dto.Nome.ToUpper().Trim();
+            var telefoneFormatado = dto.Telefone?.Trim();
+
+            var existe = await _db.Clientes
+                .AnyAsync(x => x.Nome.ToUpper().Trim() == nomeFormatado 
+                && x.Telefone.Trim() == telefoneFormatado);
+
             if (existe) return Conflict("Já existe um cliente com esse nome e telefone.");
 
             var c = new Cliente
@@ -55,9 +65,12 @@ namespace Parking.Api.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var c = await _db.Clientes.Include(x => x.Veiculos).FirstOrDefaultAsync(x => x.Id == id);
+            var c = await _db.Clientes
+                .Include(x => x.Veiculos)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
             return c == null ? NotFound("Cliente não encontrado.") : Ok(c);
         }
 
@@ -67,11 +80,19 @@ namespace Parking.Api.Controllers
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 return BadRequest("Nome é obrigatório.");
 
-            var c = await _db.Clientes.FindAsync(id);
+            var c = await _db.Clientes
+                .FindAsync(id);
+
             if (c == null) return NotFound("Cliente não encontrado.");
 
-            var conflito = await _db.Clientes.AnyAsync(x =>
-                x.Id != id && x.Nome == dto.Nome.Trim() && x.Telefone == dto.Telefone);
+            var nomeFormatado = dto.Nome.ToUpper().Trim();
+            var telefoneFormatado = dto.Telefone?.Trim();
+
+            var conflito = await _db.Clientes
+                .AnyAsync(x =>x.Id != id 
+                && x.Nome.ToUpper().Trim() == nomeFormatado 
+                && x.Telefone == telefoneFormatado);
+
             if (conflito) return Conflict("Já existe outro cliente com esse nome e telefone.");
 
             c.Nome = dto.Nome.Trim();
@@ -79,6 +100,7 @@ namespace Parking.Api.Controllers
             c.Endereco = dto.Endereco?.Trim();
             c.Mensalista = dto.Mensalista;
             c.ValorMensalidade = dto.ValorMensalidade;
+
             await _db.SaveChangesAsync();
             return Ok(c);
         }
@@ -86,13 +108,20 @@ namespace Parking.Api.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var c = await _db.Clientes.FindAsync(id);
+            var c = await _db.Clientes
+                .FindAsync(id);
+
             if (c == null) return NotFound("Cliente não encontrado.");
-            var temVeiculos = await _db.Veiculos.AnyAsync(v => v.ClienteId == id);
+
+            var temVeiculos = await _db.Veiculos
+                .AnyAsync(v => v.ClienteId == id);
+
             if (temVeiculos) return BadRequest("Cliente possui veículos associados. Transfira ou remova os veículos antes de excluir.");
+
             _db.Clientes.Remove(c);
+
             await _db.SaveChangesAsync();
-            return NoContent();
+            return Ok("Registro excluído com sucesso.");
         }
     }
 }
