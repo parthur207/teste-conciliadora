@@ -19,15 +19,13 @@ namespace Parking.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] Guid? clienteId = null)
         {
-            if (!await _db.Clientes.AnyAsync(x=>x.Id==clienteId))
-            {
-                return BadRequest("Cliente não encontrado.");
-            }
-
             var q = _db.Veiculos
-                .Include(v => v.Cliente)
-                .AsQueryable();
-            if (clienteId.HasValue) q = q.Where(v => v.ClienteId == clienteId.Value);
+              .Include(v => v.Cliente)
+              .AsQueryable();
+
+            if (clienteId.HasValue)
+                q = q.Where(v => v.ClienteId == clienteId.Value);
+
             var list = await q
                 .OrderBy(v => v.Placa)
                 .Select(v => new {
