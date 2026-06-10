@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '../api'
+import { useToast } from '../Toast'
 
 const FORM_VAZIO = { placa: '', modelo: '', ano: '', clienteId: '' }
 
 export default function VeiculosPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [clienteIdFiltro, setClienteIdFiltro] = useState('')
   const [form, setForm] = useState(FORM_VAZIO)
   const [editando, setEditando] = useState(null) // { id, placa, modelo, ano, clienteId }
@@ -19,7 +21,8 @@ export default function VeiculosPage() {
 
   const veiculos = useQuery({
     queryKey: ['veiculos', clienteIdFiltro],
-    queryFn: () => apiGet(`/api/veiculos${clienteIdFiltro ? `?clienteId=${clienteIdFiltro}` : ''}`)
+    queryFn: () => apiGet(`/api/veiculos${clienteIdFiltro ? `?clienteId=${clienteIdFiltro}` : ''}`),
+    refetchInterval: 30000
   })
 
   const create = useMutation({
@@ -28,6 +31,7 @@ export default function VeiculosPage() {
       qc.invalidateQueries({ queryKey: ['veiculos'] })
       setForm({ ...FORM_VAZIO, clienteId: form.clienteId })
       setErroCreate('')
+      toast('Veículo cadastrado com sucesso.')
     },
     onError: (err) => setErroCreate(err.message)
   })
@@ -38,14 +42,18 @@ export default function VeiculosPage() {
       qc.invalidateQueries({ queryKey: ['veiculos'] })
       setEditando(null)
       setErroEdit('')
+      toast('Veículo atualizado.')
     },
     onError: (err) => setErroEdit(err.message)
   })
 
   const remover = useMutation({
     mutationFn: (id) => apiDelete(`/api/veiculos/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['veiculos'] }),
-    onError: (err) => alert(err.message)
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['veiculos'] })
+      toast('Veículo excluído.')
+    },
+    onError: (err) => toast(err.message, 'error')
   })
 
   // Define o primeiro cliente como padrão ao carregar
@@ -151,7 +159,9 @@ export default function VeiculosPage() {
 
       <h3 style={{ marginTop: 16 }}>Lista</h3>
       <div className="section">
-        {veiculos.isLoading ? <p>Carregando...</p> : (
+        {veiculos.isLoading ? <p>Carregando...</p> : veiculos.data?.length === 0 ? (
+          <p style={{ color: 'var(--muted)' }}>Nenhum veículo encontrado.</p>
+        ) : (
           <table>
             <thead>
               <tr>
