@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Parking.Api.Data;
+using Parking.Api.Interfaces;
 using Parking.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +12,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
 });
 
-builder.Services.AddScoped<PlacaService>();
-builder.Services.AddScoped<FaturamentoService>();
+builder.Services.AddScoped<IPlacaService,PlacaService>();
+builder.Services.AddScoped<IFaturamentoService,FaturamentoService>();
+builder.Services.AddScoped<IImportService, ImportService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
