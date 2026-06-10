@@ -6,9 +6,17 @@ import ClientesPage from './pages/ClientesPage'
 import VeiculosPage from './pages/VeiculosPage'
 import FaturamentoPage from './pages/FaturamentoPage'
 import CsvUploadPage from './pages/CsvUploadPage'
+import { ToastProvider } from './Toast'
 import './styles.css'
 
-const qc = new QueryClient()
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+      staleTime: 10000
+    }
+  }
+})
 
 function Layout(){
   return (
@@ -34,7 +42,9 @@ function Layout(){
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={qc}>
     <BrowserRouter>
-      <Layout/>
+      <ToastProvider>
+        <Layout/>
+      </ToastProvider>
     </BrowserRouter>
   </QueryClientProvider>
 )
