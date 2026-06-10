@@ -1,8 +1,9 @@
+using Parking.Api.Interfaces;
 using System.Text.RegularExpressions;
 
 namespace Parking.Api.Services;
 
-public class PlacaService
+public class PlacaService : IPlacaService
 {
     public string Sanitizar(string? placa)
     {

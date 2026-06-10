@@ -1,11 +1,12 @@
 
 using Microsoft.EntityFrameworkCore;
 using Parking.Api.Data;
+using Parking.Api.Interfaces;
 using Parking.Api.Models;
 
 namespace Parking.Api.Services
 {
-    public class FaturamentoService
+    public class FaturamentoService : IFaturamentoService
     {
         private readonly AppDbContext _db;
         public FaturamentoService(AppDbContext db) => _db = db;
