@@ -131,5 +131,28 @@ tbody tr:hover td{ background:#fafbfc; }
   margin-top:8px; color:#6b7280; font-size:13px;
 }
 
-/* ---------- Pequenos ajustes ---------- */
+.toast{
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.10);
+  font-size: 14px;
+  max-width: 320px;
+  pointer-events: auto;
+  animation: toast-in 0.18s ease-out;
+}
+.toast-success{
+  background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);
+  border: 1px solid rgba(74,222,128,0.5);
+  color: #166534;
+}
+.toast-error{
+  background: linear-gradient(180deg, #fff 0%, #fef2f2 100%);
+  border: 1px solid rgba(248,113,113,0.5);
+  color: #991b1b;
+}
+@keyframes toast-in{
+  from{ opacity:0; transform: translateX(10px); }
+  to  { opacity:1; transform: translateX(0); }
+}
+
 hr{ border:none; height:1px; background: var(--line); margin: 16px 0; }
