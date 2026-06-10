@@ -11,3 +11,14 @@ export function maskTelefone(value) {
     .replace(/^(\d{2})(\d)/, '($1) $2')
     .replace(/(\d{5})(\d)/, '$1-$2');
 }
+
+export function maskValorMensalidade(value) {
+  const digits = value.replace(/\D/g, '');
+
+  if (!digits)
+    return '';
+
+  const number = Number(digits) / 100;
+
+  return number.toFixed(2);
+}

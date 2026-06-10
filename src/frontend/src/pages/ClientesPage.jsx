@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '../api'
 import { useToast } from '../Toast'
-import { maskTelefone, maskValorMensalidade } from '../utils/masks';
+import { maskTelefone, maskValorMensalidade } from '../utils/masksModuloClientes';
 
 const FORM_VAZIO = { nome: '', telefone: '', endereco: '', mensalista: false, valorMensalidade: '' }
 
@@ -41,7 +41,7 @@ export default function ClientesPage() {
       setErroEdit('')
       toast('Cliente atualizado.')
     },
-    onError: (err) => setErroEdit(err.message)
+    onError: (err)=> setErroEdit(err.message)
   })
 
   const remover = useMutation({
@@ -116,7 +116,7 @@ export default function ClientesPage() {
             <input type="checkbox" checked={form.mensalista} onChange={e => setForm({ ...form, mensalista: e.target.checked })} />
             Mensalista
           </label>
-          <input placeholder="Valor mensalidade" value={form.valorMensalidade} onChange={e => setForm({...form, valorMensalidade: maskValorMonetario(e.target.value)})}/>          <div /><div />
+          <input placeholder="Valor mensalidade" value={form.valorMensalidade} onChange={e => setForm({...form, valorMensalidade: maskValorMensalidade(e.target.value)})}/>          <div /><div />
           <button onClick={salvarNovo} disabled={create.isPending}>
             {create.isPending ? 'Salvando...' : 'Salvar'}
           </button>
@@ -130,13 +130,13 @@ export default function ClientesPage() {
             {erroEdit && <p style={{ color: '#f87171', marginBottom: 8 }}>{erroEdit}</p>}
             <div className="grid grid-4">
               <input placeholder="Nome *" value={editando.nome} onChange={e => setEditando({ ...editando, nome: e.target.value })} />
-              <input placeholder="Telefone" value={editando.telefone} onChange={e => setEditando({ ...editando, telefone: e.target.value })} />
+              <input placeholder="Telefone" value={editando.telefone} onChange={e => setEditando({ ...editando, telefone: maskTelefone(e.target.value) })} />
               <input placeholder="Endereço" value={editando.endereco} onChange={e => setEditando({ ...editando, endereco: e.target.value })} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="checkbox" checked={editando.mensalista} onChange={e => setEditando({ ...editando, mensalista: e.target.checked })} />
                 Mensalista
               </label>
-              <input placeholder="Valor mensalidade" value={editando.valorMensalidade} onChange={e => setEditando({ ...editando, valorMensalidade: e.target.value })} />
+              <input placeholder="Valor mensalidade" value={editando.valorMensalidade} onChange={e => setEditando({ ...editando, valorMensalidade: maskValorMensalidade(e.target.value) })} />
               <div /><div />
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={salvarEdicao} disabled={update.isPending}>
