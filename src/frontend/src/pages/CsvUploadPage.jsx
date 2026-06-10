@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useToast } from '../Toast'
 
 export default function CsvUploadPage() {
+  const toast = useToast()
   const [resultado, setResultado] = useState(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -27,6 +29,11 @@ export default function CsvUploadPage() {
         setErro(typeof j === 'string' ? j : JSON.stringify(j))
       } else {
         setResultado(j)
+        if (j.totalErros === 0) {
+          toast(`Importação concluída: ${j.inseridos} linha${j.inseridos !== 1 ? 's' : ''} inserida${j.inseridos !== 1 ? 's' : ''}.`)
+        } else {
+          toast(`Importação concluída com ${j.totalErros} erro${j.totalErros !== 1 ? 's' : ''}. Veja os detalhes abaixo.`, 'error')
+        }
       }
     } catch (ex) {
       setErro('Falha ao conectar com o servidor.')
