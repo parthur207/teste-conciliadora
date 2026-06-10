@@ -10,7 +10,19 @@ export default function CsvUploadPage() {
   async function handleUpload(e) {
     e.preventDefault()
     const file = e.target.file.files[0]
-    if (!file) { setErro('Selecione um arquivo CSV.'); return }
+
+  if (!file) {
+    setErro('Selecione um arquivo CSV.')
+    return
+  }
+
+  const extensao = file.name.split('.').pop()?.toLowerCase()
+
+  if (extensao !== 'csv') {
+    setErro('Arquivo inválido. Selecione um arquivo com extensão .csv.')
+    toast('Arquivo inválido. Apenas arquivos CSV são permitidos.', 'error')
+    return
+  }
 
     setCarregando(true)
     setErro('')

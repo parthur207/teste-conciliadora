@@ -17,7 +17,7 @@ namespace Parking.Api.Controllers
         public ImportController(AppDbContext db, PlacaService placa) { _db = db; _placa = placa; }
 
         [HttpPost("csv")]
-        public async Task<IActionResult> ImportCsv(IFormFile file)
+        public async Task<IActionResult> ImportCsv([FromForm] IFormFile file)
         {
             if (file is null || file.Length == 0)
                 return BadRequest("Envie um arquivo CSV no campo 'file'.");
@@ -31,7 +31,7 @@ namespace Parking.Api.Controllers
             using var stream = file.OpenReadStream();
             using var reader = new StreamReader(stream, Encoding.UTF8);
 
-            int linhaArquivo = 0;
+            int linhaArquivo = 1;
             int processados = 0;
             int inseridos = 0;
             var erros = new List<object>();
