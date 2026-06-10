@@ -60,7 +60,7 @@ export default function CsvUploadPage() {
 
       <div className="section">
         <p style={{ color: 'var(--muted)', marginBottom: 12, fontSize: '0.9em' }}>
-          Formato esperado: <code>placa,modelo,ano,cliente_id,cliente_nome,cliente_telefone,cliente_endereco,mensalista,valor_mensalidade</code>
+          Formato esperado: <code>placa,modelo,ano,cliente_nome,cliente_telefone,cliente_endereco,mensalista,valor_mensalidade</code>
         </p>
         <form onSubmit={handleUpload} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="file" name="file" accept=".csv" />
