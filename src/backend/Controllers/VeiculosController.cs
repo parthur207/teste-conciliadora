@@ -40,7 +40,9 @@ namespace Parking.Api.Controllers
         public async Task<IActionResult> Create([FromBody] VeiculoCreateDto dto)
         {
             var placa = _placa.Sanitizar(dto.Placa);
+
             if (!_placa.EhValida(placa)) return BadRequest("Placa inválida. Formatos aceitos: ABC1234 (antigo) ou ABC1D23 (Mercosul).");
+            
             if (await _db.Veiculos.AnyAsync(v => v.Placa == placa)) return Conflict("Placa já cadastrada.");
 
             var clienteExiste = await _db.Clientes.AnyAsync(c => c.Id == dto.ClienteId);
@@ -49,7 +51,6 @@ namespace Parking.Api.Controllers
             var v = new Veiculo { Placa = placa, Modelo = dto.Modelo, Ano = dto.Ano, ClienteId = dto.ClienteId };
             _db.Veiculos.Add(v);
 
-            // Datas normalizadas ao dia (sem hora) para cálculo proporcional correto
             _db.VeiculosHistorico.Add(new VeiculoHistorico
             {
                 VeiculoId = v.Id,

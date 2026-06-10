@@ -53,12 +53,13 @@ namespace Parking.Api.Controllers
 
             var c = new Cliente
             {
-                Nome = dto.Nome.Trim(),
+                Nome = dto.Nome,
                 Telefone = dto.Telefone?.Trim(),
-                Endereco = dto.Endereco?.Trim(),
+                Endereco = dto.Endereco,
                 Mensalista = dto.Mensalista,
                 ValorMensalidade = dto.ValorMensalidade,
             };
+
             _db.Clientes.Add(c);
             await _db.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = c.Id }, c);
@@ -95,9 +96,9 @@ namespace Parking.Api.Controllers
 
             if (conflito) return Conflict("Já existe outro cliente com esse nome e telefone.");
 
-            c.Nome = dto.Nome.Trim();
+            c.Nome = dto.Nome;
             c.Telefone = dto.Telefone?.Trim();
-            c.Endereco = dto.Endereco?.Trim();
+            c.Endereco = dto.Endereco;
             c.Mensalista = dto.Mensalista;
             c.ValorMensalidade = dto.ValorMensalidade;
 
