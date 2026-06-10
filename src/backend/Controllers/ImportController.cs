@@ -16,8 +16,6 @@ namespace Parking.Api.Controllers
         private readonly PlacaService _placa;
         public ImportController(AppDbContext db, PlacaService placa) { _db = db; _placa = placa; }
 
-        // Formato esperado do CSV (com cabeçalho):
-        // placa,modelo,ano,cliente_identificador,cliente_nome,cliente_telefone,cliente_endereco,mensalista,valor_mensalidade
         [HttpPost("csv")]
         public async Task<IActionResult> ImportCsv()
         {
@@ -33,7 +31,7 @@ namespace Parking.Api.Controllers
             int inseridos = 0;
             var erros = new List<object>();
 
-            await reader.ReadLineAsync(); // descarta cabeçalho
+            await reader.ReadLineAsync();
 
             while (!reader.EndOfStream)
             {
@@ -44,7 +42,6 @@ namespace Parking.Api.Controllers
 
                 var cols = raw.Split(',');
 
-                // Valida número mínimo de colunas antes de processar
                 if (cols.Length < 9)
                 {
                     erros.Add(new { linha = linhaArquivo, motivo = $"Número de colunas inválido (esperado 9, encontrado {cols.Length})." });
@@ -60,7 +57,6 @@ namespace Parking.Api.Controllers
                 var mensalistaStr = cols[7].Trim();
                 var valorMensStr = cols[8].Trim();
 
-                // Validações de negócio — acumula erros sem abortar o processamento
                 var placa = _placa.Sanitizar(placaRaw);
 
                 if (string.IsNullOrWhiteSpace(placa))

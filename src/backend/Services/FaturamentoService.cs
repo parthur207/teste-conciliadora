@@ -10,18 +10,7 @@ namespace Parking.Api.Services
         private readonly AppDbContext _db;
         public FaturamentoService(AppDbContext db) => _db = db;
 
-        /// <summary>
-        /// Gera faturas proporcionais baseadas no histórico de posse de cada veículo.
-        ///
-        /// Semântica das datas no histórico:
-        ///   DataInicio: inclusiva (primeiro dia do proprietário).
-        ///   DataFim: exclusiva (dia em que o veículo saiu, i.e. o dia em que o próximo proprietário começa).
-        ///
-        /// Exemplo – setembro (30 dias):
-        ///   Cliente A: DataInicio=01/09, DataFim=11/09  →  dias = 11/09 - 01/09 = 10 dias
-        ///   Cliente B: DataInicio=11/09, DataFim=null   →  dias = 01/10 - 11/09 = 20 dias
-        ///   Total: 30 dias ✓
-        /// </summary>
+   
         public async Task<List<Fatura>> GerarAsync(string competencia, CancellationToken ct = default)
         {
             var partes = competencia.Split('-');
@@ -43,11 +32,8 @@ namespace Parking.Api.Services
             {
                 var existente = await _db.Faturas
                     .FirstOrDefaultAsync(f => f.ClienteId == cli.Id && f.Competencia == competencia, ct);
-                if (existente != null) continue; // idempotência
+                if (existente != null) continue; 
 
-                // Registros cujo período se sobrepõe ao mês de competência
-                // DataInicio < inicioProxMes  →  o período começa antes do mês acabar
-                // DataFim > inicioMes OR DataFim is null  →  o período não terminou antes do mês começar
                 var historicos = await _db.VeiculosHistorico
                     .Where(h => h.ClienteId == cli.Id
                         && h.DataInicio < inicioProxMes
@@ -63,8 +49,7 @@ namespace Parking.Api.Services
 
                 foreach (var h in historicos)
                 {
-                    // Normaliza para midnight UTC antes de calcular dias,
-                    // evitando imprecisão causada por componentes de hora nos timestamps
+                  
                     var inicioDia = (h.DataInicio.Date > inicioMes.Date ? h.DataInicio.Date : inicioMes.Date);
                     var fimDiaExclusivo = h.DataFim.HasValue
                         ? (h.DataFim.Value.Date < inicioProxMes.Date ? h.DataFim.Value.Date : inicioProxMes.Date)

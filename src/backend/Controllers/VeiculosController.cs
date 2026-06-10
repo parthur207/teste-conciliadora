@@ -84,7 +84,6 @@ namespace Parking.Api.Controllers
 
             if (v.ClienteId != dto.ClienteId)
             {
-                // DataFim é exclusiva: o novo proprietário começa no mesmo dia
                 var hoje = DateTime.UtcNow.Date;
 
                 var histAtual = await _db.VeiculosHistorico
@@ -92,13 +91,13 @@ namespace Parking.Api.Controllers
                     .FirstOrDefaultAsync();
 
                 if (histAtual != null)
-                    histAtual.DataFim = hoje; // proprietário anterior: último período vai até ontem (hoje é exclusivo)
+                    histAtual.DataFim = hoje; 
 
                 _db.VeiculosHistorico.Add(new VeiculoHistorico
                 {
                     VeiculoId = v.Id,
                     ClienteId = dto.ClienteId,
-                    DataInicio = hoje // novo proprietário começa hoje (inclusivo)
+                    DataInicio = hoje 
                 });
             }
 

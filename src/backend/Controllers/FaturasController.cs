@@ -57,7 +57,7 @@ namespace Parking.Api.Controllers
                 .Join(_db.Veiculos, fv => fv.VeiculoId, v => v.Id, (fv, v) => v.Placa)
                 .ToListAsync();
 
-            return Ok(placas);
+            return Ok(placas ?? null);
         }
     }
 }
