@@ -1,9 +1,13 @@
 
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking.Api.Data;
+using Parking.Api.Interfaces;
 using Parking.Api.Models;
 using Parking.Api.Services;
+using System.Globalization;
 using System.Text;
 
 namespace Parking.Api.Controllers
@@ -16,134 +20,33 @@ namespace Parking.Api.Controllers
         private readonly PlacaService _placa;
         public ImportController(AppDbContext db, PlacaService placa) { _db = db; _placa = placa; }
 
-        [HttpPost("csv")]
-        public async Task<IActionResult> ImportCsv([FromForm] IFormFile file)
+        [ApiController]
+        [Route("api/import")]
+        public class ImportController : ControllerBase
         {
-            if (file is null || file.Length == 0)
-                return BadRequest("Envie um arquivo CSV no campo 'file'.");
+            private readonly IImportService _importService;
 
-            if (!Path.GetExtension(file.FileName)
-                .Equals(".csv", StringComparison.OrdinalIgnoreCase))
+            public ImportController(IImportService importService)
             {
-                return BadRequest("Arquivo inválido. Apenas arquivos .csv são permitidos.");
+                _importService = importService;
             }
 
-            using var stream = file.OpenReadStream();
-            using var reader = new StreamReader(stream, Encoding.UTF8);
-
-            int linhaArquivo = 1;
-            int processados = 0;
-            int inseridos = 0;
-            var erros = new List<object>();
-
-            await reader.ReadLineAsync();
-
-            while (!reader.EndOfStream)
+            [HttpPost("csv")]
+            public async Task<IActionResult> ImportCsv([FromForm] IFormFile file)
             {
-                linhaArquivo++;
-                var raw = await reader.ReadLineAsync();
-                if (string.IsNullOrWhiteSpace(raw)) continue;
-                processados++;
+                if (file is null || file.Length == 0)
+                    return BadRequest("Envie um arquivo CSV no campo 'file'.");
 
-                var cols = raw.Split(',');
-
-                if (cols.Length < 9)
+                if (!Path.GetExtension(file.FileName)
+                    .Equals(".csv", StringComparison.OrdinalIgnoreCase))
                 {
-                    erros.Add(new { linha = linhaArquivo, motivo = $"Número de colunas inválido (esperado 9, encontrado {cols.Length})." });
-                    continue;
+                    return BadRequest("Arquivo inválido. Apenas arquivos .csv são permitidos.");
                 }
 
-                var placaRaw = cols[0].Trim();
-                var modelo = cols[1].Trim();
-                var anoStr = cols[2].Trim();
-                var cliNome = cols[4].Trim();
-                var cliTelRaw = cols[5].Trim();
-                var cliEnd = cols[6].Trim();
-                var mensalistaStr = cols[7].Trim();
-                var valorMensStr = cols[8].Trim();
+                var resultado = await _importService.ImportAsync(file);
 
-                var placa = _placa.Sanitizar(placaRaw);
-
-                if (string.IsNullOrWhiteSpace(placa))
-                {
-                    erros.Add(new { linha = linhaArquivo, motivo = "Placa não informada." });
-                    continue;
-                }
-
-                if (!_placa.EhValida(placa))
-                {
-                    erros.Add(new { linha = linhaArquivo, motivo = $"Placa inválida: '{placaRaw}'." });
-                    continue;
-                }
-
-                if (await _db.Veiculos.AnyAsync(v => v.Placa == placa))
-                {
-                    erros.Add(new { linha = linhaArquivo, motivo = $"Placa '{placa}' já está cadastrada." });
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(cliNome))
-                {
-                    erros.Add(new { linha = linhaArquivo, motivo = "Nome do cliente não informado." });
-                    continue;
-                }
-
-                int? ano = int.TryParse(anoStr, out var anoVal) ? anoVal : null;
-
-                var cliTel = new string(cliTelRaw.Where(char.IsDigit).ToArray());
-
-                bool mensalista = bool.TryParse(mensalistaStr, out var mBool) && mBool;
-
-                decimal? valorMens = null;
-                if (!string.IsNullOrWhiteSpace(valorMensStr))
-                {
-                    if (!decimal.TryParse(valorMensStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var vm))
-                    {
-                        erros.Add(new { linha = linhaArquivo, motivo = $"Valor de mensalidade inválido: '{valorMensStr}'." });
-                        continue;
-                    }
-                    valorMens = vm;
-                }
-
-                try
-                {
-                    var cliente = await _db.Clientes
-                        .FirstOrDefaultAsync(c => c.Nome == cliNome && c.Telefone == cliTel);
-
-                    if (cliente == null)
-                    {
-                        cliente = new Cliente
-                        {
-                            Nome = cliNome,
-                            Telefone = cliTel,
-                            Endereco = cliEnd,
-                            Mensalista = mensalista,
-                            ValorMensalidade = valorMens
-                        };
-                        _db.Clientes.Add(cliente);
-                        await _db.SaveChangesAsync();
-                    }
-
-                    var veiculo = new Veiculo { Placa = placa, Modelo = modelo, Ano = ano, ClienteId = cliente.Id };
-                    _db.Veiculos.Add(veiculo);
-
-                    _db.VeiculosHistorico.Add(new VeiculoHistorico
-                    {
-                        VeiculoId = veiculo.Id,
-                        ClienteId = cliente.Id,
-                        DataInicio = DateTime.UtcNow.Date
-                    });
-
-                    await _db.SaveChangesAsync();
-                    inseridos++;
-                }
-                catch (Exception ex)
-                {
-                    erros.Add(new { linha = linhaArquivo, motivo = $"Erro inesperado: {ex.Message}" });
-                }
+                return Ok(resultado);
             }
-
-            return Ok(new { processados, inseridos, totalErros = erros.Count, erros });
         }
     }
 }

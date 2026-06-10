@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking.Api.Data;
 using Parking.Api.Dtos;
+using Parking.Api.Interfaces;
 using Parking.Api.Services;
 
 namespace Parking.Api.Controllers
@@ -12,8 +13,8 @@ namespace Parking.Api.Controllers
     public class FaturasController : ControllerBase
     {
         private readonly AppDbContext _db;
-        private readonly FaturamentoService _fat;
-        public FaturasController(AppDbContext db, FaturamentoService fat) { _db = db; _fat = fat; }
+        private readonly IFaturamentoService _fat;
+        public FaturasController(AppDbContext db, IFaturamentoService fat) { _db = db; _fat = fat; }
 
         [HttpPost("gerar")]
         public async Task<IActionResult> Gerar([FromBody] GerarFaturaRequest req, CancellationToken ct)

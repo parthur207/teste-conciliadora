@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Parking.Api.Data;
 using Parking.Api.Dtos;
+using Parking.Api.Interfaces;
 using Parking.Api.Models;
 using Parking.Api.Services;
 
@@ -13,8 +14,8 @@ namespace Parking.Api.Controllers
     public class VeiculosController : ControllerBase
     {
         private readonly AppDbContext _db;
-        private readonly PlacaService _placa;
-        public VeiculosController(AppDbContext db, PlacaService placa) { _db = db; _placa = placa; }
+        private readonly IPlacaService _placa;
+        public VeiculosController(AppDbContext db, IPlacaService placa) { _db = db; _placa = placa; }
 
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] Guid? clienteId = null)
