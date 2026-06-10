@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '../api'
+import { useToast } from '../Toast'
 
 const FORM_VAZIO = { nome: '', telefone: '', endereco: '', mensalista: false, valorMensalidade: '' }
 
 export default function ClientesPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [filtro, setFiltro] = useState('')
   const [mensalistaFiltro, setMensalistaFiltro] = useState('all')
   const [form, setForm] = useState(FORM_VAZIO)
@@ -15,7 +17,8 @@ export default function ClientesPage() {
 
   const q = useQuery({
     queryKey: ['clientes', filtro, mensalistaFiltro],
-    queryFn: () => apiGet(`/api/clientes?pagina=1&tamanho=20&filtro=${encodeURIComponent(filtro)}&mensalista=${mensalistaFiltro}`)
+    queryFn: () => apiGet(`/api/clientes?pagina=1&tamanho=20&filtro=${encodeURIComponent(filtro)}&mensalista=${mensalistaFiltro}`),
+    refetchInterval: 30000
   })
 
   const create = useMutation({
@@ -24,6 +27,7 @@ export default function ClientesPage() {
       qc.invalidateQueries({ queryKey: ['clientes'] })
       setForm(FORM_VAZIO)
       setErroCreate('')
+      toast('Cliente cadastrado com sucesso.')
     },
     onError: (err) => setErroCreate(err.message)
   })
@@ -34,14 +38,18 @@ export default function ClientesPage() {
       qc.invalidateQueries({ queryKey: ['clientes'] })
       setEditando(null)
       setErroEdit('')
+      toast('Cliente atualizado.')
     },
     onError: (err) => setErroEdit(err.message)
   })
 
   const remover = useMutation({
     mutationFn: (id) => apiDelete(`/api/clientes/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['clientes'] }),
-    onError: (err) => alert(err.message)
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clientes'] })
+      toast('Cliente excluído.')
+    },
+    onError: (err) => toast(err.message, 'error')
   })
 
   function iniciarEdicao(c) {
@@ -144,7 +152,9 @@ export default function ClientesPage() {
 
       <h3 style={{ marginTop: 16 }}>Lista</h3>
       <div className="section">
-        {q.isLoading ? <p>Carregando...</p> : (
+        {q.isLoading ? <p>Carregando...</p> : q.data?.itens?.length === 0 ? (
+          <p style={{ color: 'var(--muted)' }}>Nenhum cliente encontrado.</p>
+        ) : (
           <table>
             <thead>
               <tr>
