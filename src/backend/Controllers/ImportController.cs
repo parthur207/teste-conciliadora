@@ -23,6 +23,13 @@ namespace Parking.Api.Controllers
                 return BadRequest("Envie um arquivo CSV no campo 'file'.");
 
             var file = Request.Form.Files[0];
+
+            if (!Path.GetExtension(file.FileName)
+                .Equals(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Arquivo inválido. Apenas arquivos .csv são permitidos.");
+            }
+
             using var stream = file.OpenReadStream();
             using var reader = new StreamReader(stream, Encoding.UTF8);
 

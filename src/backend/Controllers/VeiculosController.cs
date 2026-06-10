@@ -33,6 +33,7 @@ namespace Parking.Api.Controllers
                     clienteNome = v.Cliente != null ? v.Cliente.Nome : null
                 })
                 .ToListAsync();
+
             return Ok(list);
         }
 
