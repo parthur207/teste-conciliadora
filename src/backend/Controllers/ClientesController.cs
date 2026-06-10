@@ -122,7 +122,7 @@ namespace Parking.Api.Controllers
             _db.Clientes.Remove(c);
 
             await _db.SaveChangesAsync();
-            return Ok("Registro excluído com sucesso.");
+            return NoContent();
         }
     }
 }
