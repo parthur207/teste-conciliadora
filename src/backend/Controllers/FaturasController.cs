@@ -18,7 +18,11 @@ namespace Parking.Api.Controllers
         [HttpPost("gerar")]
         public async Task<IActionResult> Gerar([FromBody] GerarFaturaRequest req, CancellationToken ct)
         {
+            if (string.IsNullOrWhiteSpace(req.Competencia))
+                return BadRequest("O formato informado não pode ser nulo. Opte por enviar conforme exemplo a seguir: (ano-mes) => 2026-06");
+
             var criadas = await _fat.GerarAsync(req.Competencia, ct);
+
             return Ok(new { criadas = criadas.Count });
         }
 
@@ -52,6 +56,7 @@ namespace Parking.Api.Controllers
                 .Where(x => x.FaturaId == id)
                 .Join(_db.Veiculos, fv => fv.VeiculoId, v => v.Id, (fv, v) => v.Placa)
                 .ToListAsync();
+
             return Ok(placas);
         }
     }
