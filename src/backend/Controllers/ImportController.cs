@@ -32,4 +32,3 @@ namespace Parking.Api.Controllers
             }
         }
     }
-}
