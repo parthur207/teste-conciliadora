@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiGet, apiPost, apiPut, apiDelete } from '../api'
 import { useToast } from '../Toast'
+import { maskPlaca, maskAno} from '../utils/masksModuloVeiculos'
 
 const FORM_VAZIO = { placa: '', modelo: '', ano: '', clienteId: '' }
 
@@ -118,9 +119,9 @@ export default function VeiculosPage() {
       <div className="section">
         {erroCreate && <p style={{ color: '#f87171', marginBottom: 8 }}>{erroCreate}</p>}
         <div className="grid grid-4">
-          <input placeholder="Placa *" value={form.placa} onChange={e => setForm({ ...form, placa: e.target.value })} />
+          <input placeholder="Placa *" value={form.placa} onChange={e => setForm({ ...form, placa: maskPlaca(e.target.value) })} />
           <input placeholder="Modelo" value={form.modelo} onChange={e => setForm({ ...form, modelo: e.target.value })} />
-          <input placeholder="Ano" value={form.ano} onChange={e => setForm({ ...form, ano: e.target.value })} />
+          <input placeholder="Ano" value={form.ano} onChange={e => setForm({ ...form, ano: maskAno(e.target.value) })} />
           <select value={form.clienteId} onChange={e => setForm({ ...form, clienteId: e.target.value })}>
             <option value="">Selecione o cliente *</option>
             {listaClientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -138,9 +139,9 @@ export default function VeiculosPage() {
           <div className="section" style={{ borderLeft: '3px solid var(--accent)' }}>
             {erroEdit && <p style={{ color: '#f87171', marginBottom: 8 }}>{erroEdit}</p>}
             <div className="grid grid-4">
-              <input placeholder="Placa *" value={editando.placa} onChange={e => setEditando({ ...editando, placa: e.target.value })} />
+              <input placeholder="Placa *" value={editando.placa} onChange={e => setEditando({ ...editando, placa: maskPlaca(e.target.value) })} />
               <input placeholder="Modelo" value={editando.modelo} onChange={e => setEditando({ ...editando, modelo: e.target.value })} />
-              <input placeholder="Ano" value={editando.ano} onChange={e => setEditando({ ...editando, ano: e.target.value })} />
+              <input placeholder="Ano" value={editando.ano} onChange={e => setEditando({ ...editando, ano: maskAno(e.target.value) })} />
               <select value={editando.clienteId} onChange={e => setEditando({ ...editando, clienteId: e.target.value })}>
                 <option value="">Selecione o cliente *</option>
                 {listaClientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
