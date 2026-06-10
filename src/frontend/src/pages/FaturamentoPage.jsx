@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, apiPost } from '../api'
 import { useToast } from '../Toast'
+import { maskCompetencia } from '../utils/masksModuloFaturamento'
 
 export default function FaturamentoPage() {
   const toast = useToast()
@@ -41,7 +42,7 @@ export default function FaturamentoPage() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input
             value={comp}
-            onChange={e => setComp(e.target.value)}
+            onChange={e => setComp(maskCompetencia(e.target.value))}
             placeholder="yyyy-MM"
             style={{ width: 120 }}
           />
