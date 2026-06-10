@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiGet, apiPost } from '../api'
+import { useToast } from '../Toast'
 
 export default function FaturamentoPage() {
+  const toast = useToast()
   const [comp, setComp] = useState('2025-08')
   const [gerando, setGerando] = useState(false)
   const [erroGerar, setErroGerar] = useState('')
 
   const faturas = useQuery({
     queryKey: ['faturas', comp],
-    queryFn: () => apiGet(`/api/faturas?competencia=${comp}`)
+    queryFn: () => apiGet(`/api/faturas?competencia=${comp}`),
+    refetchInterval: 30000
   })
 
   async function gerarFaturas() {
@@ -18,7 +21,11 @@ export default function FaturamentoPage() {
     try {
       const res = await apiPost('/api/faturas/gerar', { competencia: comp })
       await faturas.refetch()
-      if (res.criadas === 0) setErroGerar('Nenhuma fatura nova gerada. Verifique se já existem faturas para essa competência ou se há clientes mensalistas com veículos.')
+      if (res.criadas === 0) {
+        setErroGerar('Nenhuma fatura nova gerada. Verifique se já existem faturas para essa competência ou se há clientes mensalistas com veículos.')
+      } else {
+        toast(`${res.criadas} fatura${res.criadas > 1 ? 's' : ''} gerada${res.criadas > 1 ? 's' : ''} com sucesso.`)
+      }
     } catch (err) {
       setErroGerar(err.message)
     } finally {
