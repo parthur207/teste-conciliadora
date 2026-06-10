@@ -17,12 +17,10 @@ namespace Parking.Api.Controllers
         public ImportController(AppDbContext db, PlacaService placa) { _db = db; _placa = placa; }
 
         [HttpPost("csv")]
-        public async Task<IActionResult> ImportCsv()
+        public async Task<IActionResult> ImportCsv(IFormFile file)
         {
-            if (!Request.HasFormContentType || Request.Form.Files.Count == 0)
+            if (file is null || file.Length == 0)
                 return BadRequest("Envie um arquivo CSV no campo 'file'.");
-
-            var file = Request.Form.Files[0];
 
             if (!Path.GetExtension(file.FileName)
                 .Equals(".csv", StringComparison.OrdinalIgnoreCase))
