@@ -6,14 +6,17 @@ import { maskCompetencia } from '../utils/masksModuloFaturamento'
 
 export default function FaturamentoPage() {
   const toast = useToast()
-  const [comp, setComp] = useState('2025-08')
+  const [comp, setComp] = useState('')
   const [gerando, setGerando] = useState(false)
   const [erroGerar, setErroGerar] = useState('')
+
+  const compValida = comp.length === 7
 
   const faturas = useQuery({
     queryKey: ['faturas', comp],
     queryFn: () => apiGet(`/api/faturas?competencia=${comp}`),
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    enabled: compValida
   })
 
   async function gerarFaturas() {
@@ -46,16 +49,18 @@ export default function FaturamentoPage() {
             placeholder="yyyy-MM"
             style={{ width: 120 }}
           />
-          <button onClick={gerarFaturas} disabled={gerando}>
+          <button onClick={gerarFaturas} disabled={gerando || !compValida}>
             {gerando ? 'Gerando...' : 'Gerar faturas'}
           </button>
         </div>
         {erroGerar && <p style={{ color: '#f87171', marginTop: 8 }}>{erroGerar}</p>}
       </div>
 
-      <h3 style={{ marginTop: 16 }}>Faturas — {comp}</h3>
+      <h3 style={{ marginTop: 16 }}>Faturas{compValida ? ` — ${comp}` : ''}</h3>
       <div className="section">
-        {faturas.isLoading ? <p>Carregando...</p> : (
+        {!compValida ? (
+          <p style={{ color: 'var(--muted)' }}>Informe a competência no formato yyyy-MM para visualizar as faturas.</p>
+        ) : faturas.isLoading ? <p>Carregando...</p> : (
           <>
             {(!faturas.data || faturas.data.length === 0) && (
               <p style={{ color: 'var(--muted)' }}>Nenhuma fatura encontrada para essa competência.</p>
