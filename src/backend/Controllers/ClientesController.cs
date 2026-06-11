@@ -57,7 +57,7 @@ namespace Parking.Api.Controllers
                 Telefone = dto.Telefone?.Trim(),
                 Endereco = dto.Endereco,
                 Mensalista = dto.Mensalista,
-                ValorMensalidade = dto.ValorMensalidade,
+                ValorMensalidade = dto.Mensalista ? dto.ValorMensalidade : 0,
             };
 
             _db.Clientes.Add(c);
@@ -100,7 +100,7 @@ namespace Parking.Api.Controllers
             c.Telefone = dto.Telefone?.Trim();
             c.Endereco = dto.Endereco;
             c.Mensalista = dto.Mensalista;
-            c.ValorMensalidade = dto.ValorMensalidade;
+            c.ValorMensalidade =  dto.Mensalista ? dto.ValorMensalidade : 0;
 
             await _db.SaveChangesAsync();
             return Ok(c);
