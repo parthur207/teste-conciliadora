@@ -116,7 +116,7 @@ export default function ClientesPage() {
             <input type="checkbox" checked={form.mensalista} onChange={e => setForm({ ...form, mensalista: e.target.checked })} />
             Mensalista
           </label>
-          <input placeholder="Valor mensalidade" value={form.valorMensalidade} onChange={e => setForm({...form, valorMensalidade: maskValorMensalidade(e.target.value)})}/>          <div /><div />
+          <input placeholder="Valor mensalidade" value={form.valorMensalidade} disabled={!form.mensalista} onChange={e => setForm({...form, valorMensalidade: maskValorMensalidade(e.target.value)})}/>       <div /><div />
           <button onClick={salvarNovo} disabled={create.isPending}>
             {create.isPending ? 'Salvando...' : 'Salvar'}
           </button>
@@ -136,8 +136,7 @@ export default function ClientesPage() {
                 <input type="checkbox" checked={editando.mensalista} onChange={e => setEditando({ ...editando, mensalista: e.target.checked })} />
                 Mensalista
               </label>
-              <input placeholder="Valor mensalidade" value={editando.valorMensalidade} onChange={e => setEditando({ ...editando, valorMensalidade: maskValorMensalidade(e.target.value) })} />
-              <div /><div />
+              <input placeholder="Valor mensalidade" value={editando.valorMensalidade} disabled={!editando.mensalista} onChange={e => setEditando({...editando, valorMensalidade: maskValorMensalidade(e.target.value)})}/>              <div /><div />
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={salvarEdicao} disabled={update.isPending}>
                   {update.isPending ? 'Salvando...' : 'Confirmar'}
