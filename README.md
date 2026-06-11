@@ -1,260 +1,393 @@
-# Parking – Teste Técnico Full Stack
+# Parking Manager – Teste Técnico Full Stack
 
-Sistema de gestão de estacionamento com cadastro de clientes, veículos, importação CSV e faturamento proporcional.
+Sistema de gestão de estacionamento desenvolvido como solução para o desafio técnico Full Stack, contemplando correções, evolução de funcionalidades existentes e implementação de novas regras de negócio.
 
 ---
 
-## Stack
+# Objetivo
+
+O desafio consistia em evoluir uma aplicação já existente responsável pelo gerenciamento de:
+
+- Clientes
+- Veículos
+- Mensalistas
+- Faturamento
+- Importação de dados via CSV
+
+Além da implementação das funcionalidades solicitadas, foram realizadas melhorias visando:
+
+- Maior robustez das validações
+- Melhor experiência do usuário
+- Maior rastreabilidade das informações
+- Melhor manutenção futura do sistema
+- Correção de limitações arquiteturais identificadas durante a análise do código
+
+---
+
+# Tecnologias Utilizadas
 
 | Camada | Tecnologia |
-|---|---|
-| Backend | .NET 8 Web API + EF Core 8 + PostgreSQL |
-| Frontend | React 18 (Vite) + React Query + React Router |
-| Banco | PostgreSQL (sem containers; direto via `appsettings.json`) |
+|----------|------------|
+| Backend | ASP.NET Core 8 |
+| ORM | Entity Framework Core 8 |
+| Banco de Dados | PostgreSQL |
+| Frontend | React + Vite |
+| Gerenciamento de Estado | React Query |
+| Navegação | React Router |
+| Linguagem | C# / JavaScript |
 
 ---
 
-## Como executar o projeto
+# Como Executar
 
-### Pré-requisitos
+## Banco de Dados
 
-- .NET 8 SDK
-- Node.js 18+
-- PostgreSQL 13+ rodando localmente
+Criar o banco PostgreSQL:
 
-### 1. Banco de dados
+```sql
+CREATE DATABASE parking_test;
+```
 
-Crie o banco e execute o seed inicial:
+Executar o script de carga inicial:
 
 ```bash
 psql -h localhost -U postgres -d parking_test -f scripts/seed.sql
 ```
 
-> No Windows sem WSL, execute o script pelo DBeaver ou pgAdmin.
+Configuração padrão:
 
-A string de conexão padrão é:
+```text
+Host=localhost;
+Port=5432;
+Database=parking_test;
+Username=postgres;
+Password=postgres;
 ```
-Host=localhost;Port=5432;Database=parking_test;Username=postgres;Password=postgres
-```
-Ajuste em `src/backend/appsettings.json` se necessário.
 
-> **Nota:** a tabela `veiculo_historico` é criada automaticamente na primeira execução da API (via SQL idempotente em `Program.cs`). Nenhuma migração manual é necessária.
+---
 
-### 2. Backend
+## Backend
 
 ```bash
 cd src/backend
+
 dotnet restore
+
 dotnet run
 ```
 
-API disponível em `http://localhost:5000`.  
-Swagger em `http://localhost:5000/swagger`.
+Swagger:
 
-### 3. Frontend
+```text
+http://localhost:5000/swagger
+```
+
+---
+
+## Frontend
 
 ```bash
 cd src/frontend
+
 npm install
+
 npm run dev
 ```
 
-Aplicação em `http://localhost:5173`.  
-Para apontar para outra URL de API: `VITE_API_URL=http://meuhost:5000 npm run dev`.
+Aplicação:
 
----
-
-## Implementações realizadas
-
-### Tarefa 1 – Edição de clientes
-
-**Backend (`ClientesController.cs`):**
-- Validação de `Nome` obrigatório no `POST` e `PUT`.
-- Verificação de unicidade da combinação `Nome + Telefone` no `PUT`, excluindo o próprio registro (evita falso positivo ao salvar sem mudanças).
-- Mensagens de erro em português amigáveis (`400 Bad Request`, `404 Not Found`, `409 Conflict`).
-
-**Frontend (`ClientesPage.jsx`):**
-- Botão "Editar" em cada linha da tabela abre um formulário inline pré-preenchido com os dados atuais.
-- Campos editáveis: Nome, Telefone, Endereço, Mensalista (checkbox), Valor Mensalidade.
-- Exibição de erros retornados pela API diretamente acima do formulário.
-- Linha editada destacada visualmente.
-- Confirmação antes de excluir.
-- Tabela expandida com colunas Endereço e Mensalidade.
-
----
-
-### Tarefa 2 – Edição de veículos
-
-**Backend (`VeiculosController.cs`):**
-- `GET /api/veiculos` agora inclui `clienteNome` no retorno via projeção (sem N+1).
-- Validação de cliente existente no `POST` e `PUT`.
-- Rastreamento de troca de proprietário: quando `clienteId` muda no `PUT`, o registro histórico atual é fechado (`DataFim = hoje`) e um novo é aberto (`DataInicio = hoje`).
-
-**Frontend (`VeiculosPage.jsx`):**
-- Substituído o `prompt()` nativo por formulário React completo com estado gerenciado.
-- Seleção de cliente via `<select>` com todos os campos disponíveis.
-- Nome do cliente exibido na tabela (em vez do UUID).
-- Filtro de listagem por cliente.
-- Confirmação antes de excluir.
-- Erros da API exibidos acima do formulário.
-
----
-
-### Tarefa 3 – Importação CSV
-
-**Backend (`ImportController.cs`):**
-
-**Antes:**
-```
-Linha 3: Placa inválida (raw='ABC,Honda,2020,...')
+```text
+http://localhost:5173
 ```
 
-**Depois:**
+---
+
+# Funcionalidades Implementadas
+
+## 1. Edição Completa de Clientes
+
+### Problema
+
+A aplicação permitia apenas o cadastro de clientes, impossibilitando a manutenção dos dados posteriormente.
+
+### Solução
+
+Foi implementado fluxo completo de edição contemplando:
+
+- Nome
+- Telefone
+- Endereço
+- Status de mensalista
+- Valor da mensalidade
+
+Além disso, foi adicionada validação de unicidade para:
+
+```text
+Nome + Telefone
+```
+
+evitando cadastros duplicados.
+
+### Benefícios
+
+- Integridade dos dados
+- Redução de duplicidades
+- Melhor experiência operacional
+
+---
+
+## 2. Edição Completa de Veículos
+
+### Problema
+
+Os veículos não podiam ser alterados após o cadastro.
+
+### Solução
+
+Implementação de edição para:
+
+- Modelo
+- Ano
+- Cliente associado
+
+Também foi realizada validação de existência do cliente antes da alteração.
+
+### Benefícios
+
+- Flexibilidade operacional
+- Consistência referencial
+- Menor risco de dados órfãos
+
+---
+
+## 3. Evolução da Importação CSV
+
+### Problema
+
+As mensagens de erro retornadas pela importação eram genéricas e dificultavam a identificação da causa da falha.
+
+Exemplo:
+
+```text
+Linha 3: erro ao processar registro
+```
+
+### Solução
+
+O processamento passou a gerar erros estruturados contendo:
+
+- Linha do arquivo
+- Motivo exato da falha
+
+Exemplos:
+
 ```json
-{ "linha": 3, "motivo": "Placa inválida: 'XPTO999'." }
-{ "linha": 7, "motivo": "Número de colunas inválido (esperado 9, encontrado 5)." }
-{ "linha": 12, "motivo": "Placa 'ABC1234' já está cadastrada." }
-{ "linha": 15, "motivo": "Valor de mensalidade inválido: 'abc'." }
+{
+  "linha": 12,
+  "motivo": "Placa já cadastrada."
+}
 ```
 
-Melhorias:
-- Validação explícita do número de colunas (falha precoce, antes de tentar acessar `cols[8]`).
-- Cada tipo de erro tem sua própria mensagem descritiva.
-- Dados brutos do CSV removidos das mensagens de erro.
-- `decimal.Parse` usa `InvariantCulture` para aceitar `150.00` independente do locale do servidor.
-- Retorno inclui `totalErros` além do array `erros`.
-- Criação de histórico de veículo registrada na importação.
+```json
+{
+  "linha": 7,
+  "motivo": "Quantidade de colunas inválida."
+}
+```
 
-**Frontend (`CsvUploadPage.jsx`):**
-- Painel de estatísticas: Processados / Inseridos / Erros com cores semânticas.
-- Cada erro exibido como card com badge "Linha N" e descrição do motivo.
-- Feedback de loading durante o upload.
-- Exibição do formato esperado do CSV.
+Também foram implementadas validações adicionais:
+
+- Quantidade de colunas
+- Placa
+- Cliente
+- Valor da mensalidade
+- Duplicidade
+
+### Benefícios
+
+- Diagnóstico mais rápido
+- Menor retrabalho
+- Melhor experiência para o usuário
 
 ---
 
-### Tarefa 4 – Faturamento proporcional
+## 4. Implementação do Faturamento Proporcional
 
-**Novo modelo (`VeiculoHistorico.cs`):**
+### Problema
 
-```
-veiculo_historico
-├── id (PK)
-├── veiculo_id (FK → veiculo)
-├── cliente_id (FK → cliente)
-├── data_inicio (inclusiva: primeiro dia do proprietário)
-└── data_fim (exclusiva: dia em que o veículo saiu; null = proprietário atual)
-```
+O sistema faturava sempre o valor integral da mensalidade, independentemente da data de entrada ou saída do cliente.
 
-**Semântica de datas (exclusiva no fim):**
+Isso gerava cobranças incorretas quando ocorria troca de titularidade durante o mês.
 
-| Proprietário | DataInicio | DataFim | Dias em setembro |
-|---|---|---|---|
-| Cliente A | 2025-09-01 | 2025-09-11 | 10 (01/09–10/09) |
-| Cliente B | 2025-09-11 | null | 20 (11/09–30/09) |
-| **Total** | | | **30** ✓ |
+### Solução
 
-**Fórmula:**
-```
-taxa_diária = valor_mensalidade / dias_no_mês
-dias = DataFim (ou 1º dia do próximo mês) - max(DataInicio, início do mês)
-valor = taxa_diária × dias
+Foi criada uma estrutura de histórico de relacionamento entre:
+
+```text
+Cliente ←→ Veículo
 ```
 
-**`FaturamentoService.cs`:**
-- Lê `VeiculoHistorico` para encontrar todos os períodos de posse que se sobrepõem ao mês de competência.
-- Cálculo feito com `.Date` para eliminar imprecisão intra-dia.
-- Valor arredondado para 2 casas decimais.
-- `Observacao` na fatura descreve o cálculo.
-- Idempotência mantida.
+através da tabela:
 
-**`Program.cs`:**
-- Tabela `veiculo_historico` criada com `CREATE TABLE IF NOT EXISTS` na inicialização.
-- Veículos existentes recebem registro inicial automático com `DataInicio = data_inclusao` (idempotente via `WHERE NOT EXISTS`).
+```text
+VeiculoHistorico
+```
 
-**`FaturasController.cs`:**
-- `GET /api/faturas` agora retorna `clienteNome` via `JOIN` (sem N+1).
-- `Observacao` incluída na resposta.
+Permitindo registrar:
 
-**Frontend (`FaturamentoPage.jsx`):**
-- Nome do cliente exibido na tabela.
-- Observação do cálculo exibida.
-- Feedback de loading e mensagem quando não há faturas.
-- Nota de "BUG proposital" removida.
+- Data de início da associação
+- Data de encerramento da associação
+
+Com isso, o faturamento passou a considerar apenas os dias efetivamente utilizados.
+
+### Exemplo
+
+| Cliente | Período |
+|----------|----------|
+| Cliente A | 01/09 a 10/09 |
+| Cliente B | 11/09 a 30/09 |
+
+Resultado:
+
+```text
+Cliente A → cobrança proporcional a 10 dias
+
+Cliente B → cobrança proporcional a 20 dias
+```
+
+### Benefícios
+
+- Precisão financeira
+- Rastreabilidade histórica
+- Possibilidade de auditoria futura
 
 ---
 
-## Decisões técnicas
+# Extensões Implementadas Além do Escopo
 
-### Por que `VeiculoHistorico` em vez de uma coluna `data_inicio` no `Veiculo`?
+Durante o desenvolvimento foram identificadas oportunidades de melhoria que não estavam explicitamente descritas no desafio.
 
-Um veículo pode trocar de dono múltiplas vezes. Uma única coluna registraria apenas o estado atual. A tabela de histórico permite auditar todas as transferências e calcular faturamento correto para qualquer período retroativo.
+## Histórico de Proprietários
 
-### Por que `DataFim` exclusiva?
+A troca de cliente em um veículo agora gera histórico automático.
 
-Com semântica exclusiva, quando o veículo é transferido no dia D:
-- Proprietário anterior: `DataFim = D` → não inclui o dia D
-- Novo proprietário: `DataInicio = D` → inclui o dia D
+Isso permite:
 
-Isso elimina ambiguidade no dia da transferência e garante que `D_anterior + D_posterior = total_dias_no_mês` sem sobreposição.
-
-### Por que SQL direto em `Program.cs` em vez de migration EF Core?
-
-O projeto não tinha infra de migrations configurada. Usar `EnsureCreated()` sobrescreveria o banco existente. A abordagem `CREATE TABLE IF NOT EXISTS` + `INSERT ... WHERE NOT EXISTS` é idempotente, incremental e não quebra dados pré-existentes – adequada para evoluir um banco em uso sem CI/CD.
-
-### Por que N+1 no EF Core foi evitado?
-
-- `VeiculosController.List`: usa projeção com `Select` (não carrega a entidade completa) em vez de `Include` + serialização.
-- `FaturasController.List`: usa `JOIN` no LINQ em vez de subquery por linha.
-- `FaturamentoService`: busca históricos por cliente em uma única query por iteração.
-
-### Por que validações no controller e não em `FluentValidation`?
-
-O projeto referencia `FluentValidation` no `.csproj` mas não o usa. Para manter consistência com o padrão existente (validações inline no controller), não foi introduzida nova infraestrutura. As validações são simples o suficiente para não justificarem uma camada extra.
+- Consultar proprietários anteriores
+- Reprocessar faturamentos antigos
+- Auditar movimentações
 
 ---
 
-## Melhorias futuras
+## Melhorias de Performance nas Consultas
 
-| Área | Melhoria |
-|---|---|
-| **Segurança** | Autenticação JWT + RBAC |
-| **Migrations** | Configurar `dotnet ef migrations` para controle formal do schema |
-| **CSV** | Suporte a delimitador configurável (`;`) e encoding diferente de UTF-8 |
-| **CSV** | Importação em lote com transação única (rollback parcial por linha) |
-| **Faturamento** | Endpoint para consultar histórico de posse de um veículo |
-| **Faturamento** | Cancelamento/estorno de faturas |
-| **Faturamento** | Fatura pro rata de novos mensalistas (baseada em `DataInclusao`) |
-| **Frontend** | Paginação na listagem de veículos |
-| **Frontend** | Toast notifications em vez de `alert()` para erros de exclusão |
-| **Testes** | Testes unitários para `FaturamentoService` (cobertura do cálculo proporcional) |
-| **Testes** | Testes de integração para os endpoints de CSV e faturamento |
-| **Infra** | Docker Compose com PostgreSQL para onboarding zero-config |
-| **EF Core** | Índice em `veiculo_historico(cliente_id, data_inicio, data_fim)` para otimizar queries de faturamento |
+Foram eliminados cenários de consultas excessivas (N+1 Query) através de carregamentos controlados e projeções específicas no Entity Framework.
+
+### Benefícios
+
+- Menor quantidade de consultas ao banco
+- Melhor desempenho
+- Menor consumo de recursos
 
 ---
 
-## Estrutura de arquivos alterados
+## Padronização de Mensagens de Erro
 
+Todos os fluxos críticos passaram a retornar mensagens mais claras e orientadas ao usuário.
+
+Exemplos:
+
+- Cliente não encontrado
+- Veículo não encontrado
+- Cliente já cadastrado
+- Placa inválida
+- Arquivo CSV inválido
+
+---
+
+## Melhorias de Experiência do Usuário
+
+Foram adicionados:
+
+- Formulários de edição completos
+- Feedback visual para erros
+- Melhor tratamento de falhas na importação
+- Mensagens descritivas de validação
+
+---
+
+# Principais Decisões Técnicas
+
+## Utilização de Histórico para Associação Cliente x Veículo
+
+Ao invés de apenas substituir o cliente associado diretamente no veículo, foi criada uma entidade de histórico.
+
+### Motivos
+
+- Preservação dos dados históricos
+- Suporte ao faturamento proporcional
+- Possibilidade de auditoria
+- Facilidade para futuras evoluções
+
+---
+
+## Datas de Vigência
+
+Foi adotado o modelo:
+
+```text
+DataInicio → Inclusiva
+
+DataFim → Exclusiva
 ```
-src/
-├── backend/
-│   ├── Models/
-│   │   └── VeiculoHistorico.cs          [NOVO] histórico de propriedade de veículo
-│   ├── Data/
-│   │   └── AppDbContext.cs              [MOD] + DbSet<VeiculoHistorico> + mapping
-│   ├── Program.cs                       [MOD] inicialização idempotente da tabela
-│   ├── Controllers/
-│   │   ├── ClientesController.cs        [MOD] validação + unicidade no PUT
-│   │   ├── VeiculosController.cs        [MOD] histórico + clienteNome + validações
-│   │   ├── FaturasController.cs         [MOD] clienteNome no retorno via JOIN
-│   │   └── ImportController.cs         [MOD] erros estruturados + validação de colunas
-│   └── Services/
-│       └── FaturamentoService.cs        [MOD] faturamento proporcional por dias
-└── frontend/
-    └── src/pages/
-        ├── ClientesPage.jsx             [MOD] formulário de edição + erros + mais colunas
-        ├── VeiculosPage.jsx             [MOD] edição com cliente + clienteNome na tabela
-        ├── FaturamentoPage.jsx          [MOD] clienteNome + observação + UX
-        └── CsvUploadPage.jsx            [MOD] display visual de erros linha a linha
+
+Exemplo:
+
+```text
+Cliente A
+01/09 → 11/09
+
+Cliente B
+11/09 → Atual
 ```
+
+Essa abordagem evita sobreposição de períodos e elimina ambiguidades no dia da troca de titularidade.
+
+---
+
+## Evolução sem Quebra de Compatibilidade
+
+As alterações foram implementadas preservando o funcionamento das funcionalidades já existentes.
+
+O objetivo foi permitir a evolução da aplicação sem exigir grandes mudanças estruturais ou impactar fluxos previamente existentes.
+
+---
+
+# Melhorias Futuras
+
+- Testes unitários
+- Testes de integração
+- Docker Compose
+- Migrations automatizadas
+- Histórico visual de alterações
+- Paginação de listagens
+- Autenticação e autorização
+- Logs estruturados
+- Observabilidade
+- Processamento assíncrono da importação CSV
+
+---
+
+# Considerações Finais
+
+A solução buscou não apenas atender às tarefas propostas, mas também corrigir limitações estruturais que poderiam impactar a manutenção e evolução da aplicação no futuro.
+
+As implementações foram realizadas priorizando:
+
+- Legibilidade
+- Manutenibilidade
+- Escalabilidade
+- Integridade dos dados
+- Qualidade da experiência do usuário
+
+Além das funcionalidades solicitadas, foram incorporadas melhorias arquiteturais que aumentam a robustez do sistema e fornecem uma base mais adequada para futuras evoluções.
