@@ -22,6 +22,9 @@ Além da implementação das funcionalidades solicitadas, foram realizadas melho
 - Melhor manutenção futura do sistema
 - Correção de limitações arquiteturais identificadas durante a análise do código
 
+
+# Link do Back-End em arquitetura moderna (Clean Architecture): 
+
 ---
 
 # Tecnologias Utilizadas
