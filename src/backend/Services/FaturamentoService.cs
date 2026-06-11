@@ -20,7 +20,7 @@ namespace Parking.Api.Services
 
             var diasNoMes = DateTime.DaysInMonth(ano, mes);
             var inicioMes = new DateTime(ano, mes, 1, 0, 0, 0, DateTimeKind.Utc);
-            var inicioProxMes = inicioMes.AddMonths(1); // DataFim exclusiva: primeiro dia do mês seguinte
+            var inicioProxMes = inicioMes.AddMonths(1); 
 
             var mensalistas = await _db.Clientes
                 .Where(c => c.Mensalista)
@@ -50,7 +50,6 @@ namespace Parking.Api.Services
 
                 foreach (var h in historicos)
                 {
-                  
                     var inicioDia = (h.DataInicio.Date > inicioMes.Date ? h.DataInicio.Date : inicioMes.Date);
                     var fimDiaExclusivo = h.DataFim.HasValue
                         ? (h.DataFim.Value.Date < inicioProxMes.Date ? h.DataFim.Value.Date : inicioProxMes.Date)
