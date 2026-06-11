@@ -6,7 +6,7 @@ Sistema de gestão de estacionamento desenvolvido como solução para o desafio 
 
 # Objetivo
 
-O desafio consistia em evoluir uma aplicação já existente responsável pelo gerenciamento de:
+Evolução de uma aplicação já existente responsável pelo gerenciamento de:
 
 - Clientes
 - Veículos
@@ -53,6 +53,15 @@ Executar o script de carga inicial:
 ```bash
 psql -h localhost -U postgres -d parking_test -f scripts/seed.sql
 ```
+
+# OU:
+
+Executar a criação do banco de dados via migration pelo EF Core.
+
+# Caminho: [text](src/backend/Migrations)
+
+* Execução via terminal pelo comando "dotnet ef database update". 
+* É importante que a connection string ja esteja devidamente configurada e apontada para seu ambiente.
 
 Configuração padrão:
 
